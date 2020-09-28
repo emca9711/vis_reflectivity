@@ -57,8 +57,8 @@ class eemcs_xwing_exp:
         self.stage1_t0 = 0 # (milimeters) the position of the delay stage at pump-probe overlap
         self.daq = NI_PCIe6321()
         self.initialize(min_t, max_t, step_size, dwell)
-#        self.daq.set_up_DAQ('1', ['ai0'], ['ao0']) # Device number, AI_chans, AO_chans
-        
+        # initialize equipment
+        self.stage1.initializeStage()
         
     def initialize(self, min_t, max_t, step_size, dwell):
         """
@@ -76,45 +76,55 @@ class eemcs_xwing_exp:
         
         #set limits on the plot's y axis
         self.setYAxisLim(-.1,10)
-        # initialize equipment
-        self.stage1.initializeStage()
+        
  
     def startExp(self):
         """This function runs the experiment one time and plots the results as 
         they are collected.
-        """
-        self.daq.set_up_DAQ('1', ['ai0'], ['ao0']) # Device number, AI_chans, AO_chans
         
-        datay = np.zeros(len(self.positions))
-        # Set up the figure
-        fig = plt.figure()
-        plt.ion()
-        ax = fig.add_subplot(111) #https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html?highlight=add_subplot#matplotlib.figure.Figure.add_subplot
-        line1, = ax.plot(self.positions, datay, 'r-') # Returns a tuple of line objects, thus the comma
-        ax.set_ylim(self.lim1, self.lim2)
-        # plot the data using pyplot
-        i=0
-        for pos in self.positions:
-            # Move the stage, pause to let lock-in settle before collecting point
-            self.stage1.moveStageTo(pos) #note that self.positions are in units of mm!
-            time.sleep(3*self.dwell)
+        I'm using a 'Try, Except' block here so that if the user wants to stop
+        the program running (during data collection, say) they can do so with 
+        a KeyboardInterrupt (Ctrl -c) without breaking the code/confusing the 
+        DAQ card.
+        """
+        try:
+            self.daq.set_up_DAQ('1', ['ai0'], ['ao0']) # Device number, AI_chans, AO_chans
             
-            # collect a point. This gives an array of data. Average that array.          
-            point = np.average(self.daq.collect_point(self.dwell, self.samps_per_chan))
+            datay = np.zeros(len(self.positions))
+            # Set up the figure
+            fig = plt.figure()
+            plt.ion()
+            ax = fig.add_subplot(111) #https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html?highlight=add_subplot#matplotlib.figure.Figure.add_subplot
+            line1, = ax.plot(self.positions, datay, 'r-') # Returns a tuple of line objects, thus the comma
+            ax.set_ylim(self.lim1, self.lim2)
+            # plot the data using pyplot
+            i=0
+            for pos in self.positions:
+                # Move the stage, pause to let lock-in settle before collecting point
+                self.stage1.moveStageTo(pos) #note that self.positions are in units of mm!
+                time.sleep(3*self.dwell)
+                
+                # collect a point. This gives an array of data. Average that array.          
+                point = np.average(self.daq.collect_point(self.dwell, self.samps_per_chan))
+                
+                # put the new data into the x and y data arrays
+                datay[i] = point
+                # Update the plot of the data every nth data point. https://stackoverflow.com/questions/4098131/how-to-update-a-plot-in-matplotlib
+                if i % 2 == 0:
+                    ax.set_ylim(min(datay)-0.1*max(datay), 1.1*max(datay))
+                    line1.set_ydata(datay)
+                    fig.canvas.draw()
+                    fig.canvas.flush_events()
+                    plt.pause(0.2)
+                i = i+1
+            self.datay = datay
+            self.stopExp() #This doesn't work here b/c CollectPoint stops the DAQ task...
+        except KeyboardInterrupt:
+            self.stopExp()
+            print('Interrupted')
             
-            # put the new data into the x and y data arrays
-            datay[i] = point
-            # Update the plot of the data every nth data point. https://stackoverflow.com/questions/4098131/how-to-update-a-plot-in-matplotlib
-            if i % 2 == 0:
-                ax.set_ylim(min(datay)-0.1*max(datay), 1.1*max(datay))
-                line1.set_ydata(datay)
-                fig.canvas.draw()
-                fig.canvas.flush_events()
-                plt.pause(0.2)
-            i = i+1
-        self.datay = datay
-        self.stopExp() #This doesn't work here b/c CollectPoint stops the DAQ task...
-
+            
+            
     def stopExp(self): 
         """
         Tells the DAQ to stop. Use when you get a -50103 error from the DAQ
@@ -130,8 +140,14 @@ class eemcs_xwing_exp:
         self.lim2 = lim2
     
     def setDelays(self, times):
-         self.times = times # units = picoseconds
-         self.positions = util.ps_to_mm(self.times, self.stage1_passes, self.stage1_t0) #convert times into mm of stage travel for primary pump-probe stage
+        self.times = times # units = picoseconds
+        self.positions = util.ps_to_mm(self.times, self.stage1_passes, self.stage1_t0) #convert times into mm of stage travel for primary pump-probe stage
+        #Check if the positions are within the stage's bounds
+        if min(self.positions)<self.stage1.minPos:
+            raise Exception('Desired minimum time is out-of-bounds')
+        if max(self.positions) > self.stage1.maxPos:
+            raise Exception('Desired max time is out of bounds.')            
+         
          
     def set_t0(self, t0):
         self.stage1_t0 = t0

@@ -23,8 +23,8 @@ class AerotechStage:
         self.cAxisMask = c.c_ulong(0)
         # This is the offset value found in the Ensemble Configuration Manager. It might change. Eventually the code will search for this value.
         self.offset = -55 #units = mm
-        self.minPos = 110 + self.offset
-        self.maxPos = 0 + self.offset
+        self.maxPos = 110 + self.offset
+        self.minPos = 0 + self.offset
 #    def runCommand():
         """
         Ultimately I want this function to run a command and check the error.
@@ -75,7 +75,7 @@ class AerotechStage:
         position that is passed to the stage should be independent of the offset.
         Position should also be in units of milimeters.
         """
-        if position <= self.minPos and position >= self.maxPos:
+        if position <= self.maxPos and position >= self.minPos:
             self.cSpeed = c.pointer(c.c_double(50))
             self.cPosition = c.pointer(c.c_double(position))
             if not  self.ensemble.EnsembleMotionMoveAbs(self.cHandle, self.cAxisMask, self.cPosition, self.cSpeed):
