@@ -106,6 +106,7 @@ class eemcs_xwing_exp:
             datay[i] = point
             # Update the plot of the data every nth data point. https://stackoverflow.com/questions/4098131/how-to-update-a-plot-in-matplotlib
             if i % 2 == 0:
+                ax.set_ylim(min(datay)-0.1*max(datay), 1.1*max(datay))
                 line1.set_ydata(datay)
                 fig.canvas.draw()
                 fig.canvas.flush_events()
