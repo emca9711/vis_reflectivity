@@ -69,11 +69,11 @@ class eemcs_xwing_exp:
         Provide the min_t and max_t and step size in mm
         """
         # set up delays, etc.
-        self.times = util.delay_times_linear(min_t, max_t, step_size)
-        #self.times = util.delay_times_double(min_t, 40, 0.1, max_t, 1)
+        #self.times = util.delay_times_linear(min_t, max_t, step_size)
+        self.times = util.delay_times_double(min_t, 40, 0.1, max_t, 1)
         self.setDelays(self.times)
-        self.dwell = dwell*10**(-3) # units =microseconds
-        self.samps_per_chan = 10 # samples per channel the DAQ will collect during each dwell
+        self.dwell = dwell*10**(-3) # units =milliseconds
+        self.samps_per_chan = 100 # samples per channel the DAQ will collect during each dwell
         
         #set limits on the plot's y axis
         self.setYAxisLim(-.1,10)
@@ -96,7 +96,7 @@ class eemcs_xwing_exp:
             fig = plt.figure()
             plt.ion()
             ax = fig.add_subplot(111) #https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html?highlight=add_subplot#matplotlib.figure.Figure.add_subplot
-            line1, = ax.plot(self.positions, datay, 'r-') # Returns a tuple of line objects, thus the comma
+            line1, = ax.plot(self.times, datay, 'r-') # Returns a tuple of line objects, thus the comma
             ax.set_ylim(self.lim1, self.lim2)
             # plot the data using pyplot
             i=0
@@ -143,7 +143,7 @@ class eemcs_xwing_exp:
     def setDelays(self, times):
         #self.times = times # units = picoseconds
         self.positions = util.ps_to_mm(self.times, self.stage1_passes, self.stage1_t0) #convert times into mm of stage travel for primary pump-probe stage
-        self.positions = times 
+        #self.positions = times
        #Check if the positions are within the stage's bounds
         if min(self.positions)<self.stage1.minPos:
             raise Exception('Desired minimum time is out-of-bounds')

@@ -82,7 +82,7 @@ def delay_times_linear(min_t, max_t, step_size):
 def delay_times_double(min_t, t2, step_size1, max_t, step_size2):
     foo = np.arange(t2, min_t - step_size1, -step_size1)
     bar = np.arrange(max_t, t2, -step_size2)
-    return np.concatenate(bar,foo)
+    return np.concatenate((bar,foo),axis=0)
     
 def delay_times_exp(min_t, max_t, t0, min_step, max_step, number_of_steps):
     """Returns an array of delay times in exponential steps given min_t, max_t,
