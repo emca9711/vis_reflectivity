@@ -54,7 +54,7 @@ class eemcs_xwing_exp:
         # User should update these as needed.
         self.stage1 = AerotechStage() # Primary pump-probe delay stage
         self.stage1_passes = 4 # number of times the beam goes through the retroreflector on the primary delay stage
-        self.stage1_t0 = 0 # (milimeters) the position of the delay stage at pump-probe overlap
+        self.stage1_t0 = 0.5 # (milimeters) the position of the delay stage at pump-probe overlap
         self.daq = NI_PCIe6321()
         self.initialize(min_t, max_t, step_size, dwell)
         # initialize equipment
@@ -70,6 +70,7 @@ class eemcs_xwing_exp:
         """
         # set up delays, etc.
         self.times = util.delay_times_linear(min_t, max_t, step_size)
+        #self.times = util.delay_times_double(min_t, 40, 0.1, max_t, 1)
         self.setDelays(self.times)
         self.dwell = dwell*10**(-3) # units =microseconds
         self.samps_per_chan = 10 # samples per channel the DAQ will collect during each dwell
@@ -140,9 +141,10 @@ class eemcs_xwing_exp:
         self.lim2 = lim2
     
     def setDelays(self, times):
-        self.times = times # units = picoseconds
+        #self.times = times # units = picoseconds
         self.positions = util.ps_to_mm(self.times, self.stage1_passes, self.stage1_t0) #convert times into mm of stage travel for primary pump-probe stage
-        #Check if the positions are within the stage's bounds
+        self.positions = times 
+       #Check if the positions are within the stage's bounds
         if min(self.positions)<self.stage1.minPos:
             raise Exception('Desired minimum time is out-of-bounds')
         if max(self.positions) > self.stage1.maxPos:
