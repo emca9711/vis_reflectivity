@@ -78,11 +78,11 @@ def rand_raster(center, step_size, num_points, random):
 def delay_times_linear(min_t, max_t, step_size):
     """This function takes a minimum delay in ps and a maximum delay in ps and 
     a step size and generates a range of delay stage positions"""
-    return np.arange(max_t, min_t - step_size, -step_size)
+    return np.flip(np.arange(max_t, min_t - step_size, -step_size))
 def delay_times_double(min_t, t2, step_size1, max_t, step_size2):
     foo = np.arange(t2, min_t - step_size1, -step_size1)
-    bar = np.arrange(max_t, t2, -step_size2)
-    return np.concatenate((bar,foo),axis=0)
+    bar = np.arange(max_t, t2, -step_size2)
+    return np.flip(np.concatenate((bar,foo),axis=0))
     
 def delay_times_exp(min_t, max_t, t0, min_step, max_step, number_of_steps):
     """Returns an array of delay times in exponential steps given min_t, max_t,
@@ -110,7 +110,7 @@ def delay_times_exp(min_t, max_t, t0, min_step, max_step, number_of_steps):
 
 def ps_to_mm(delays, stage_passes, t0_in_mm):
     """Converts values in ps to values in mm."""
-    mm_delays = delays * stage_passes * 0.2998 + t0_in_mm 
+    mm_delays = delays * (1/stage_passes) * 0.2998 + t0_in_mm 
     return mm_delays
 
 def mm_to_ps(delays_in_mm, stage_passes, t0_in_mm):

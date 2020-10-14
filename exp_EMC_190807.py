@@ -60,6 +60,8 @@ class eemcs_xwing_exp:
         # initialize equipment
         self.stage1.initializeStage()
         
+        
+        
     def initialize(self, min_t, max_t, step_size, dwell):
         """
         Initialize is a separate function from the __init__ so that you can 
@@ -69,8 +71,8 @@ class eemcs_xwing_exp:
         Provide the min_t and max_t and step size in mm
         """
         # set up delays, etc.
-        #self.times = util.delay_times_linear(min_t, max_t, step_size)
-        self.times = util.delay_times_double(min_t, 40, 0.1, max_t, 1)
+        #global self.times = util.delay_times_linear(min_t, max_t, step_size)
+        global self.times = util.delay_times_double(min_t, -380, step_size, max_t, 1)
         self.setDelays(self.times)
         self.dwell = dwell*10**(-3) # units =milliseconds
         self.samps_per_chan = 100 # samples per channel the DAQ will collect during each dwell
@@ -103,7 +105,7 @@ class eemcs_xwing_exp:
             for pos in self.positions:
                 # Move the stage, pause to let lock-in settle before collecting point
                 self.stage1.moveStageTo(pos) #note that self.positions are in units of mm!
-                time.sleep(3*self.dwell)
+                time.sleep(30*10**(-3))
                 
                 # collect a point. This gives an array of data. Average that array.          
                 point = np.average(self.daq.collect_point(self.dwell, self.samps_per_chan))
@@ -116,9 +118,9 @@ class eemcs_xwing_exp:
                     line1.set_ydata(datay)
                     fig.canvas.draw()
                     fig.canvas.flush_events()
-                    plt.pause(0.2)
+                    plt.pause(0.05)
                 i = i+1
-            self.datay = datay
+            global self.datay = datay
             self.stopExp() #This doesn't work here b/c CollectPoint stops the DAQ task...
         except KeyboardInterrupt:
             self.stopExp()
