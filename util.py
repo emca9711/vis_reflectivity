@@ -108,14 +108,24 @@ def delay_times_exp(min_t, max_t, t0, min_step, max_step, number_of_steps):
     
     return delays
 
-def ps_to_mm(delays, stage_passes, t0_in_mm):
+# def ps_to_mm(delays, stage_passes, t0_in_ps):
+#     """Converts values in ps to values in mm."""
+#     mm_delays = (delays + t0_in_ps) * (1/stage_passes) * 0.2998
+#     return mm_delays
+
+def ps_to_mm(delays, stage_passes):
     """Converts values in ps to values in mm."""
-    mm_delays = delays * (1/stage_passes) * 0.2998 + t0_in_mm 
+    mm_delays = (delays) * (1/stage_passes) * 0.2998
     return mm_delays
 
-def mm_to_ps(delays_in_mm, stage_passes, t0_in_mm):
+# def mm_to_ps(delays_in_mm, stage_passes, t0_in_ps):
+#     """Converts values in ps to values in mm."""
+#     ps_delays = (delays_in_mm * stage_passes)/0.2998 - t0_in_ps
+#     return ps_delays
+
+def mm_to_ps(delays_in_mm, stage_passes):
     """Converts values in ps to values in mm."""
-    ps_delays = (delays_in_mm - t0_in_mm )/( stage_passes * 0.2998)
+    ps_delays = (delays_in_mm * stage_passes)/0.2998 
     return ps_delays
 #
 ## --------------- Testing functions --------------------------------

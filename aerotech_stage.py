@@ -54,7 +54,8 @@ class AerotechStage:
             print('Problem enabling motion.')
             self.getEnsembleError()
         # Send the stage to its home position. Passing it the handle to the stage and
-        # the axes that we are using (just 1 in this case)                
+        # the axes that we are using (just 1 in this case)               
+        self.homeStage()
    
     def homeStage(self):
         if not  self.ensemble.EnsembleMotionHome(self.cHandle, self.cAxisMask):
@@ -78,6 +79,7 @@ class AerotechStage:
         if position <= self.maxPos and position >= self.minPos:
             self.cSpeed = c.pointer(c.c_double(50))
             self.cPosition = c.pointer(c.c_double(position))
+            self.current_pos = position
             if not  self.ensemble.EnsembleMotionMoveAbs(self.cHandle, self.cAxisMask, self.cPosition, self.cSpeed):
                 print('Problem moving Ensemble stage.')
                 self.getEnsembleError()
