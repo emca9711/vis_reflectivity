@@ -76,7 +76,7 @@ class NI_PCIe6321:
         # You must provide this function with an array of channel numbers for
         # the analog input (AIchans) and analog output (AOchans) you wish to use.
         # The arrays may be empty, e.g. []
-        
+        # 'ai1'
         self.dev = 'Dev'+ device_number # needs to be binary string for PyDAQmx
         
         self.analog_input = daq.Task() # Create the analog input task
